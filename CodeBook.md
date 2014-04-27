@@ -1,13 +1,18 @@
 ## Coursera - Getting and Cleaning Data Project
 Assignment:   Wearable computing data set clean-up
-Date:         4/26/2014
+Date:         4/27/2014
 
-Reference:
+#### Introduction:
+
+This is a data cleaning project for a Coursera MOOC - Getting and Cleaning Data. 
+class.coursera.org/getdata-002
+The data set comes from the following reference:
 [1] Davide Anguita, Alessandro Ghio, Luca Oneto, Xavier Parra and Jorge L. Reyes-Ortiz. Human Activity Recognition on Smartphones using a Multiclass Hardware-Friendly Support Vector Machine. International Workshop of Ambient Assisted Living (IWAAL 2012). Vitoria-Gasteiz, Spain. Dec 2012
 
 
-#### The dataset includes the following files:
+#### The dataset includes the following files 
 
+(Note: excerpt from README.txt):
 * 'README.txt'
 * 'features_info.txt': Shows information about the variables used on the feature vector.
 * 'features.txt': List of all features.
@@ -27,6 +32,7 @@ The following files are available for the train and test data. Their description
 
 #### Introduction of features/variables:
 
+(Note: excerpt from README.txt):
 These signals were used to estimate variables of the feature vector for each pattern:  
 '-XYZ' is used to denote 3-axial signals in the X, Y and Z directions.
 
@@ -82,65 +88,65 @@ The complete list of variables of each feature vector is available in 'UCIHARDat
 
 #### Procedures for data cleanup
 
-The following is my procedure:
-* 1.  Some preparative work (create column names, labels etc.)
-* 2.  Read x_train.txt into a dataframe train.x
-* 3.  Read y_train.txt into a dtatframe train.y
-* 4.  Add "descriptive activity names" to train.y
-* 5.  Read subject_train.txt into a dtatframe train.subject
-* 6.  Perform cbind(train.x, train.y, train.subject)
-* 7.  Repeat steps 2-6 with test data
-* 8.  Combine train and test data into data.set
-* 9.  Extract the measurements on the mean and std
-* 10. Build an expanded dataframe for all label/subject combinations
-* 11. Fix the column name issue
-* 12. Compute the variable averages per activity and subject
+The following procedure was performed to produce the tidy dataset:
+# Some preparative work (create column names, labels etc.)
+# Read x_train.txt into a dataframe train.x
+# Read y_train.txt into a dtatframe train.y
+# Add "descriptive activity names" to train.y
+# Read subject_train.txt into a dtatframe train.subject
+# Perform cbind(train.x, train.y, train.subject)
+# Repeat steps 2-6 with test data
+# Combine train and test data into data.set
+# Extract the measurements on the mean and std
+# Build an expanded dataframe for all label/subject combinations
+# Fix the column name issue
+# Compute the variable averages per activity and subject
 
 Below are more detailed explanations:
-* 1.  Some preparative work (create column names, labels etc.)
-Because the main data files are in txt format with no headers, the first step is to obtain those information:
-Column names (variables) were obtained from features.txt using read.table().
-Labels (activities) were obtained from activity_label.txt similarly.
-Subject was created using a simple vector of 1:30 which are the codes for each volunteer in this experiment.
+# Some preparative work (create column names, labels etc.)
+Because the main data files are in txt format with no headers, the first step was to obtain those information from other files:
+Column names (variables) were obtained from features.txt using read.table() and stored in dataframe "colnames".
+Labels (activities) were obtained from activity_label.txt similarly and stored in "label".
+Subject ("subject") was created using a simple vector of 1:30 which are the codes to represent each volunteer in this experiment.
 
-* 2.  Read x_train.txt into a dataframe train.x
+# Read x_train.txt into a dataframe "train.x"
 Based on the file structure, it seems read.fwf(width=16) is the most suitable approach to import the data. However, in practice read.fwf() behaved unbearably slow and consumed too much memory.
 Instead, read.table() was used and the column names from step 1 were assigned at the same time.
 
-* 3.  Read y_train.txt into a dtatframe train.y
-Import y_train.txt into train.y. Note it only contains the digits which will be converted into more descriptive name in the next step.
+# Read y_train.txt into a dtatframe "train.y"
+Data in y_train.txt was imported into dataframe "train.y". Note it only contains the number representation which will be converted into more descriptive name in the next step.
 
-* 4.  Add "descriptive activity names" to train.y
+# Add "descriptive activity names" to "train.y"
 Using the merge(train.y, label, by="y") function, descriptive names were added into data frame train.y
 
-* 5.  Read subject_train.txt into a dtatframe train.subject
+# Read subject_train.txt into a dtatframe train.subject
 Obtained train subject (experiment volunteers) information from the subject_train.txt file.
 
-* 6.  Perform cbind(train.x, train.y, train.subject)
-Combined train.x, train.y and train.subject into a single data.frame using cbind().
+# Perform cbind(train.x, train.y, train.subject)
+Combined train.x, train.y and train.subject into a single data.frame "train" using cbind().
 
-* 7.  Repeat steps 2-6 with test data
-Repeated steps 2-6 for test data.
+# Repeat steps 2-6 with test data
+Repeated steps 2-6 for test data "test".
 
-* 8.  Combine train and test data into data.set
-Used rbind() to cobmine train and test data.
+# Combine train and test data into "data.set"
+Used rbind() to cobmine train and test data into dataframe "data.set".
 
-* 9.  Extract the measurements on the mean and std
-Upon visual examination of the data, it was determined that the required variables all contain "mean()" in their names. Therefore, regular expression grepl() was used to locate their positions, and the returned logical vector was then used to select those rows and stored in "selected".
+# Extract the measurements on the mean and std
+Upon visual examination of the data, it was found that the required variables all contain "mean()" in their names. Therefore, regular expression grepl() was used to locate their positions, and the returned logical vector was then used to select those rows and stored them in dataframe "selected".
 It should be noted that some variables also contain "mean" in their names (ex. meanFreq). It was necessary to include the parentheses () to exclude those terms. The parentheses () also needs to be properly escaped ("mean\\(\\)|std\\(\\)"). 
 
-* 10. Build an expanded dataframe for all label/subject combinations
+# Build an expanded dataframe for all label/subject combinations
 Using the table() function (table(selected$label, selected$subject)), it was observed that not all subjects (experiment volunteers) participated in all the activities. To compute a dataframe with all 30 subjects * 6 activities = 180 combinations, it was needed to expand the dataframe to include those missing combinations before applying a map function to compute the grouped means.
 All 180 combinations were computed using the outer product outer() function and stored in a dataframe "interact".
 Meanwhile, an extra column was added to dataframe "select" to store the concatenation of subject and activity for each observations.
-Next, the "interact" and "select" dataframes were merged (with option all=TRUE) to obtain the expanded dataframe "expanded" that included all combinations missed in the original "select" dataframe.
+Next, the "interact" and "select" dataframes were merged (with by="interaction and all=TRUE) to obtain the expanded dataframe "expanded" that included all combinations missed in the original "select" dataframe.
 
-* 11. Fix the column name issue
+# Fix the column name issue
 A minor issue was found that the column names was silently modified by R to comply with its naming ruling. The modified names were again extracted back from the dataframe "selected" to be used in the next step.
 
-* 12. Compute the variable averages per activity and subject
-The tapply() function could be used to conveniently apply a function to a vector grouped by another vector. Here, a for loop was used that loop through all variables. Within each loop, the tapply() function was then applied to compute the grouped average for that variable. Finally, all average data was stored in a dataframe "grouped.avg".
-Following the for loop, the data frame was exported into a csv and submitted to Coursera for grading.
+# Compute the variable averages per activity and subject
+The tapply() function could be used to conveniently apply a function to a vector grouped by another vector. Here, a for loop was used to iterate through all variables. Within each loop, the tapply() function was then applied to compute the grouped average for that variable. Finally, all average data was stored in a dataframe "grouped.avg".
+After the for loop, the data frame was exported into a csv or txt and submitted to Coursera for grading.
 
 It may be possible to not use the for loop, which will be investigated later.
 

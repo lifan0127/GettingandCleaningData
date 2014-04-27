@@ -21,8 +21,9 @@
 # 7.  Repeat steps 2-6 with test data
 # 8.  Combine train and test data into data.set
 # 9.  Extract the measurements on the mean and std
-# 10. Compute the average of each variable for each activity
-# 11. Compute the average of each variable for each subject
+# 10. Build an expanded dataframe for all label/subject combinations
+# 11. Fix the column name issue
+# 12. Compute the variable averages per activity and subject
 
 
 # 1.  Some preparative work (create column names, labels etc.)
@@ -105,9 +106,9 @@ for (var in var.names){
   grouped.avg[, var] <- avg
 }
 grouped.avg <- grouped.avg[, 2:ncol(grouped.avg)]
-write.csv(grouped.avg, "UCIHARDataset/GroupedAverage.csv")
+write.csv(grouped.avg, "UCIHARDataset/tidydata.csv")
 
-
+write.table(grouped.avg, "UCIHARDataset/tidydata.txt")
 
 
 
